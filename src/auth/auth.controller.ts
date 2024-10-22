@@ -1,16 +1,27 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { CreateRegisterDto } from './dtos/create-register.dto';
 import { AuthService } from './auth.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { OutputRegisterDto } from './dtos/output-register.dto';
+import { OutputLoginDto } from './dtos/output-login.dto';
+import { CreateLoginDto } from './dtos/create-login.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  async signup(@Body() newRegister: CreateRegisterDto) {
+  @ApiCreatedResponse({ type: OutputRegisterDto })
+  async signUp(@Body() newRegister: CreateRegisterDto) {
     return this.authService.register(newRegister);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  @ApiOkResponse({ type: OutputLoginDto })
+  async signIn(@Body() signInDto: CreateLoginDto) {
+    return this.authService.signIn(signInDto);
   }
 }
