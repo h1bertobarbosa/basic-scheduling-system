@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  Put,
   Query,
 } from '@nestjs/common';
 import { ProfessionalsService } from './professionals.service';
@@ -57,7 +56,7 @@ export class ProfessionalsController {
     return this.professionalsService.findOne(id, userSession.accountId);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOkResponse({ type: OutputProfessionalDto })
   update(
     @Param('id') id: string,

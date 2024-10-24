@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { LibsModule } from './libs/libs.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
+import { ClientsModule } from './clients/clients.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ProfessionalsModule } from './professionals/professionals.module';
     AccountsModule,
     LibsModule,
     ProfessionalsModule,
+    ClientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

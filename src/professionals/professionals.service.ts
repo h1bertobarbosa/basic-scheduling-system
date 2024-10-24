@@ -65,7 +65,8 @@ export class ProfessionalsService {
     const { accountId, ...data } = updateProfessionalDto;
     const professionalUpdated = await this.professionalModel.findOneAndUpdate(
       { _id: id, accountId },
-      data,
+      { $set: data },
+      { new: true },
     );
     return OutputProfessionalDto.getInstanceFromCollection(professionalUpdated);
   }
