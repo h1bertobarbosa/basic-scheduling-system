@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, ObjectId } from 'mongoose';
 
 export type ProfessionalDocument = HydratedDocument<Professional>;
@@ -13,6 +13,20 @@ export class Professional {
 
   @Prop()
   enabled: boolean;
+  @Prop(
+    raw([
+      {
+        dayOfWeek: { type: String },
+        hours: [
+          {
+            start: { type: String },
+            end: { type: String },
+          },
+        ],
+      },
+    ]),
+  )
+  scheduleAvailability: Record<string, any>[];
 }
 
 export const ProfessionalSchema = SchemaFactory.createForClass(
