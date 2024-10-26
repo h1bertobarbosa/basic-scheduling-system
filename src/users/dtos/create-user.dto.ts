@@ -18,4 +18,7 @@ export class CreateUserDto {
 
   @IsOptional()
   accountId: string;
+
+  @IsOptional()
+  enabled?: boolean;
 }

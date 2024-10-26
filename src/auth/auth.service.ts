@@ -26,12 +26,16 @@ export class AuthService {
       name: input.userName,
       email: input.userEmail,
       password: input.userPassword,
+      enabled: true
     });
     return OutputRegisterDto.getInstanceFromCollection(newUser);
   }
 
   async signIn({ email, password }: CreateLoginDto): Promise<OutputLoginDto> {
     const user = await this.usersService.findOneBy({ email });
+    if(!user.enabled){
+      throw new UnauthorizedException();
+    }
     const isMatch = await this.hashingService.comparePassword(
       password,
       user.password,
