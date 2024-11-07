@@ -15,5 +15,6 @@ import {
   ],
   controllers: [ProfessionalsController],
   providers: [ProfessionalsService],
+  exports: [ProfessionalsService],
 })
 export class ProfessionalsModule {}

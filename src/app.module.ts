@@ -9,6 +9,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { LibsModule } from './libs/libs.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
 import { ClientsModule } from './clients/clients.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ClientsModule } from './clients/clients.module';
     LibsModule,
     ProfessionalsModule,
     ClientsModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
