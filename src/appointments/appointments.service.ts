@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Model } from 'mongoose';
@@ -43,29 +43,109 @@ export class AppointmentsService {
     });
   }
 
-  async findAll(
-    input: QueryParamsProfessionalDto,
-  ): Promise<OutputAppointmentDto[]> {
-    const appointments = await this.appointmentModel.find({
-      accountId: input.accountId,
-      professional: {
-        id: input.professionalId,
+  async findAll(input: QueryParamsProfessionalDto) {
+    const { page, perPage, accountId, professionalId, clientId } = input;
+    const skip = (page - 1) * perPage;
+
+    const filter = {
+      accountId,
+    };
+    if (professionalId) {
+      filter['professional.id'] = professionalId;
+    }
+    if (clientId) {
+      filter['client.id'] = clientId;
+    }
+
+    const [results, total] = await Promise.all([
+      this.appointmentModel.find(filter).skip(skip).limit(perPage).exec(),
+      this.appointmentModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      data: results.map((appointment) =>
+        OutputAppointmentDto.getInstanceFromCollection(appointment),
+      ),
+      meta: {
+        total,
+        page,
+        perPage,
       },
-    });
-    return appointments.map((appointment) =>
-      OutputAppointmentDto.getInstanceFromCollection(appointment),
+    };
+  }
+
+  async findOne(id: string, accountId: string) {
+    const appointment = await this.appointmentModel.findById(id);
+    if (!appointment || String(appointment.accountId) !== accountId) {
+      throw new NotFoundException('Appointment not found');
+    }
+    return OutputAppointmentDto.getInstanceFromCollection(appointment);
+  }
+
+  async update(
+    id: string,
+    updateAppointmentDto: UpdateAppointmentDto,
+  ): Promise<OutputAppointmentDto> {
+    const { accountId, clientId, professionalId, ...data } =
+      updateAppointmentDto;
+
+    const existingAppointment = await this.appointmentModel.findById(id);
+    if (
+      !existingAppointment ||
+      String(existingAppointment.accountId) !== accountId
+    ) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    const updateData: any = { ...data };
+
+    if (clientId || professionalId) {
+      const promises = [];
+
+      if (clientId) {
+        promises.push(this.clientsService.findOne(clientId, accountId));
+      }
+
+      if (professionalId) {
+        promises.push(
+          this.professionalsService.findOne(professionalId, accountId),
+        );
+      }
+
+      const results = await Promise.all(promises);
+      let resultIndex = 0;
+
+      if (clientId) {
+        const client = results[resultIndex++];
+        updateData.client = {
+          id: client.id,
+          name: client.name,
+        };
+      }
+
+      if (professionalId) {
+        const professional = results[resultIndex++];
+        updateData.professional = {
+          id: professional.id,
+          name: professional.name,
+        };
+      }
+    }
+
+    const appointmentUpdated = await this.appointmentModel.findOneAndUpdate(
+      { _id: id, accountId },
+      { $set: updateData },
+      { new: true },
     );
+
+    return OutputAppointmentDto.getInstanceFromCollection(appointmentUpdated);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} appointment`;
-  }
-
-  update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    return `This action updates a #${id} appointment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} appointment`;
+  async remove(id: string, accountId: string) {
+    const appointment = await this.appointmentModel.findById(id);
+    if (!appointment || String(appointment.accountId) !== accountId) {
+      throw new NotFoundException('Appointment not found');
+    }
+    await this.appointmentModel.deleteOne({ _id: id });
   }
 }

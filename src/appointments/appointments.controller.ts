@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -46,5 +48,31 @@ export class AppointmentsController {
       ...query,
       accountId: userSession.accountId,
     });
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string, @UserSession() userSession: UserSession) {
+    return this.appointmentsService.findOne(id, userSession.accountId);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @UserSession() userSession: UserSession,
+  ) {
+    return this.appointmentsService.update(id, {
+      ...updateAppointmentDto,
+      accountId: userSession.accountId,
+    });
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  async remove(
+    @Param('id') id: string,
+    @UserSession() userSession: UserSession,
+  ) {
+    await this.appointmentsService.remove(id, userSession.accountId);
   }
 }
